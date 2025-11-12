@@ -1,18 +1,12 @@
-Person C — Dataset 1: Feature importance & Recommendation
+# Person C — Dataset 1: Feature importance & Recommendation
 
-Run L1-LogReg, RFECV, and permutation_importance on best_pipe.
-
-Produce ranking_df with columns: feature, method, rank/score; also an ensemble rank (average of normalized ranks).
-
-Implement accuracy_vs_k_curve using ensemble rank; evaluate k=1..10 via CV; plot.
-
-Write d1_feature_recommendation.txt:
-
-Best CV accuracy
-
-Smallest k within 1% of best
-
-Final feature list in order, plus 2–3 sentence rationale.
-Study: RFECV, permutation importance pitfalls (correlated features), CI vs overfitting in wrapper methods.
+#Run L1-LogReg, RFECV, and permutation_importance on best_pipe.
+#Produce ranking_df with columns: feature, method, rank/score; also an ensemble rank (average of normalized ranks).
+#Implement accuracy_vs_k_curve using ensemble rank; evaluate k=1..10 via CV; plot.
+#Write d1_feature_recommendation.txt:
+#- Best CV accuracy
+#- Smallest k within 1% of best
+#- Final feature list in order, plus 2–3 sentence rationale.
+#- Study: RFECV, permutation importance pitfalls (correlated features), CI vs overfitting in wrapper methods.
 
 

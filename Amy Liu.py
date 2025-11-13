@@ -15,6 +15,30 @@ data1 = pd.read_csv('Dataset1.csv')
 data2 = pd.read_csv('Dataset2.csv')
 print(data1.head(), data1.info(), data1.describe())
 
+#Preprocessor class
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+class Preprocessor:
+    def __init__(self, df, target_col):
+        self.df = df
+        self.target_col = target_col
+
+    def clean(self):
+        self.df = self.df.dropna()
+        return self
+
+    def split(self, test_size=0.2, random_state=42):
+        X = self.df.drop(columns=[self.target_col])
+        y = self.df[self.target_col]
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, stratify=y, random_state=random_state)
+        self.scaler = StandardScaler().fit(X_train)
+        return (self.scaler.transform(X_train),
+                self.scaler.transform(X_test),
+                y_train, y_test,
+                X.columns)
+
 #classifier class
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -66,4 +90,14 @@ class Evaluator:
         disp.plot(cmap='Blues')
         plt.title(title)
         plt.show()
-            
+
+#Feature Importance (Dataset 1)
+importances = clf.feature_importance(feature_names)
+plt.bar(importances.keys(), importances.values())
+plt.xticks(rotation=60)
+plt.title("Feature importance (Dataset 1)")
+plt.show()
+
+
+
+

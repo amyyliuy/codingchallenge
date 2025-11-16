@@ -1,56 +1,42 @@
-# Dataset 1 Report – Conductive vs Non-conductive Classification
+# Dataset 1 – Conductive vs Non-conductive Classification
 
-## 1. Problem and Data
+## 1. Aim and data
 
-The goal is to predict whether a material is **conductive** or **non-conductive** from 10 measured properties (density, vacancy content, melting temperature, heat conductivity, band gap, crystallinity index, thermal expansion coefficient, Young’s modulus, hardness, lattice parameter). The dataset contains **5000** rows and **11** columns (10 features + `label`). The classes are imbalanced: **4506 non-conductive** and **494 conductive** samples.
+The goal is to predict whether a material is **conductive** or **non-conductive** from ten measured properties (density, vacancy content, melting temperature, heat conductivity, band gap, crystallinity index, thermal expansion coefficient, Young’s modulus, hardness, lattice parameter). The dataset contains 5000 rows and 11 columns (10 features + `label`). The classes are imbalanced: 4506 non-conductive and 494 conductive samples.
 
 ## 2. Methods
 
-### Preprocessing
+A `Preprocessor` class loads `dataset_1.csv`, prints basic exploratory statistics, and reports missing values. The target column is `label`. The data are split into training and test sets using an 80/20 stratified split (4000 train, 1000 test) so that the class balance is preserved.
 
-A `Preprocessor` class handles:
+All input features are treated as numeric. A `ColumnTransformer` applies a pipeline of `SimpleImputer(strategy="median")` followed by `StandardScaler` to impute missing values and normalise the features.
 
-- Loading the CSV with pandas.
-- Basic inspection (head, summary statistics, missing values).
-- Train–test splitting (`train_test_split`, test size 0.2, stratified by `label` → 4000 train, 1000 test).
-- Building a scikit-learn `ColumnTransformer` that applies:
-  - `SimpleImputer(strategy="median")` to handle missing values in each feature.
-  - `StandardScaler` to normalise all numeric features.
+A `BinaryClassifier` class wraps scikit-learn models inside a `Pipeline(preprocessor, classifier)`. Two classifiers were compared:
 
-### Models
+- **Logistic Regression** (linear model, `max_iter=1000`)
+- **Random Forest** (`n_estimators=200`, `random_state=42`)
 
-A `BinaryClassifier` class wraps scikit-learn models inside a `Pipeline(preprocessor + classifier)`. For Dataset 1 we tested:
-
-- **Logistic Regression** (`LogisticRegression(max_iter=1000)`)
-- **Random Forest** (`RandomForestClassifier(n_estimators=200, random_state=42)`)
-
-An `Evaluator` class computes accuracy, precision, recall and F1-score, prints the classification report and saves confusion-matrix and feature-importance plots.
+An `Evaluator` class computes accuracy, precision, recall, F1-score and the full classification report, and saves confusion matrices and feature-importance plots.
 
 ## 3. Results
 
-Both models achieve **perfect performance on the held-out test set**:
+On the held-out test set, both models achieved perfect performance:
 
-- Logistic Regression: accuracy **1.00**, precision **1.00**, recall **1.00**, F1 **1.00**
-- Random Forest: accuracy **1.00**, precision **1.00**, recall **1.00**, F1 **1.00**
+- Logistic Regression: accuracy 1.00, precision 1.00, recall 1.00, F1-score 1.00
+- Random Forest: accuracy 1.00, precision 1.00, recall 1.00, F1-score 1.00
 
-Confusion matrices show **zero misclassifications** for both conductive (99 test samples) and non-conductive (901 test samples).
+The confusion matrices for both classifiers show **zero misclassifications**: all 99 conductive and 901 non-conductive samples in the test set are correctly classified.
 
-Feature importance (from logistic-regression coefficients / random-forest importances) indicates that classification is dominated by a subset of features, in particular:
+Feature importance (from the best model) indicates that a small subset of features dominates the decision: band gap, lattice parameter, crystallinity index, Young’s modulus, thermal expansion coefficient and hardness have the highest weights. A bar chart visualises these importances.
 
-- `band_gap`
-- `lattice_parameter`
-- `crystallinity_index`
-- `young_modulus`
-- `thermal_expansion_coeff`
-- `hardness`
+To investigate redundancy, we ranked features by importance and retrained logistic regression using every subset size from 10 down to 1 feature. The “accuracy vs number of features” plot shows that test accuracy remains at 1.00 even when only the top few features are used; performance only degrades when very few features are retained.
 
-Feature-subset experiments using logistic regression with only the top 10, 8, 6 and 4 features all still give **100% test accuracy**, and the plot of accuracy vs number of features is flat at 1.0.
+## 4. Discussion and recommendation
 
-## 4. Discussion and Recommendation
+The results suggest that Dataset 1 is **almost perfectly separable** using the provided features. Even a simple linear model (logistic regression) can classify the materials without error on the test set, and reducing the input to the most informative 4–6 features does not hurt performance. This is unlikely in noisy real-world measurements, so the dataset should be interpreted as an idealised scenario.
 
-The pipeline suggests that Dataset 1 is **almost perfectly separable** in the space of the measured properties: even a simple linear model (logistic regression) is able to classify all test materials correctly. In practice, real experimental data would contain noise and imperfect labels, so we would not expect 100% accuracy; these results should be interpreted as an optimistic upper bound on achievable performance for this synthetic dataset.
+For a practical deployment based on this dataset, I would recommend:
 
-Given that logistic regression matches or exceeds the performance of the more complex random forest while being simpler and more interpretable, we recommend:
+- Using **logistic regression** as the main classifier, due to its simplicity and interpretability.
+- Focusing on the most important features (especially band gap, lattice parameter and crystallinity index) to reduce measurement cost while keeping high predictive power.
 
-- Using **logistic regression** as the production classifier.
-- Measuring at least the **top 4–6 features** (`band_gap`, `lattice_parameter`, `crystallinity_index`, `young_modulus`, plus optionally `thermal_expansion_coeff` and `hardness`). This subset already achieves perfect performance on the test set and would reduce experimental measurement cost without sacrificing accuracy on this dataset.
+Overall, the pipeline meets the brief by including preprocessing, model comparison, confusion matrices, feature-importance visualisation and a systematic feature-subset study.

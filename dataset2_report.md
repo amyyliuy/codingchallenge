@@ -8,7 +8,7 @@ Test-set performance mirrors these trends. KNN attains 0.97 accuracy and misclas
 
 A learning curve is generated for the random forest model, using training sizes from 5 up to 320 samples. The training accuracy is 1.00 for all sizes, showing that the random forest model can fit the training data perfectly well. The cross-validation curve starts around 0.63 at 5 training samples and rises quickly; once the training size exceeds 7 samples, the random forest consistently achieves more than 70% accuracy. With around 15–20 training samples the cross-validation accuracy already exceeds 0.90, and from about 30–40 samples onwards it stabilises above 0.98, approaching the near-perfect regime seen at larger training sizes.
 
-Overall, this analysis shows that all four models can learn the pattern in dataset 2 very effectively, but random forest offers the best combination of high and stable performance on both cross-validation and the held-out test set, so it is chosen as the final model.
+Overall, this analysis shows that all four models can learn the pattern in dataset 2 very effectively, but random forest offers the best combination of high and stable performance on both cross-validation and the held-out test set, so it is chosen as the best model to classify Dataset 2.
 
 <img width="385" height="384" alt="image" src="https://github.com/user-attachments/assets/f830f112-cfb0-41ea-a273-8fcafb0363c3" />
 <img width="378" height="382" alt="image" src="https://github.com/user-attachments/assets/7b51c1c3-9eba-4d1c-af13-df4e5c8fd661" />

@@ -20,14 +20,18 @@ from sklearn.metrics import (
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 
 DATASET_1_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_1.csv"
 DATASET_2_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_2.csv"
 
 PLOTS_ROOT = Path("plots")
 PLOTS_ROOT.mkdir(exist_ok=True)
+
+# -------------------------------------------------------------------
+# 1. PREPROCESSOR CLASS
+# -------------------------------------------------------------------
 
 class Preprocessor:
     """
@@ -130,10 +134,14 @@ class Preprocessor:
         return preprocessor, feature_names
 
 
+# -------------------------------------------------------------------
+# 2. CLASSIFIER (used as BinaryClassifier for dataset 1)
+# -------------------------------------------------------------------
+
 class Classifier:
     """
     Generic classifier wrapper which holds:
-      - a scikit-learn model (e.g. LogisticRegression, RandomForest)
+      - a scikit-learn model (e.g. LogisticRegression, RandomForest, KNN, SVM)
       - the preprocessing pipeline
     It exposes .fit(), .predict() and .get_feature_importances().
     """
@@ -154,10 +162,11 @@ class Classifier:
             model = RandomForestClassifier(
                 n_estimators=200, random_state=42
             )
-        elif model_name == "svc_rbf":
-            model = SVC(kernel="rbf", gamma="scale")
         elif model_name == "knn_5":
             model = KNeighborsClassifier(n_neighbors=5)
+        elif model_name == "svm":
+            # SVM classifier, here using RBF kernel
+            model = SVC(kernel="rbf", gamma="scale")
         else:
             raise ValueError(f"Unknown model name: {model_name}")
 
@@ -185,12 +194,13 @@ class Classifier:
         """
         Tries to expose feature importances from the underlying model.
 
-        - For linear models (e.g. LogisticRegression) we use |coef_|.
+        - For linear models (e.g. LogisticRegression, linear SVM) we use |coef_|.
         - For tree-based models (e.g. RandomForest) we use feature_importances_.
+        - KNN does not expose feature importances.
         """
         clf = self.pipeline.named_steps["classifier"]
 
-        # Linear models
+        # Linear-type models with coef_
         if hasattr(clf, "coef_"):
             coef = np.ravel(clf.coef_)
             importances = np.abs(coef)
@@ -212,6 +222,14 @@ class Classifier:
         )
         return importance_dict
 
+
+# For Dataset 1 we can simply use Classifier as a BinaryClassifier:
+BinaryClassifier = Classifier
+
+
+# -------------------------------------------------------------------
+# 3. EVALUATOR CLASS
+# -------------------------------------------------------------------
 
 class Evaluator:
     """
@@ -352,7 +370,7 @@ class Evaluator:
             train_mean,
             marker="o",
             linestyle="-",
-            markersize=3,  # <- smaller points
+            markersize=3,
             linewidth=1.0,
             label="Training score",
         )
@@ -361,7 +379,7 @@ class Evaluator:
             test_mean,
             marker="o",
             linestyle="-",
-            markersize=3,  # <- smaller points
+            markersize=3,
             linewidth=1.0,
             label="Cross-validation score",
         )
@@ -392,8 +410,13 @@ class Evaluator:
         print(f"[Evaluator] Saved learning curve to {path}")
 
 
+# -------------------------------------------------------------------
+# 4. PIPELINES FOR DATASET 1 AND DATASET 2
+# -------------------------------------------------------------------
+
 PLOTS_ROOT = Path("plots")
 PLOTS_ROOT.mkdir(exist_ok=True)
+
 
 def run_dataset1_pipeline():
     """
@@ -468,7 +491,6 @@ def run_dataset1_pipeline():
     n_features = len(ranked_features)
 
     # Evaluate ALL subset sizes: n_features, n_features-1, ..., 1
-    # (0 features is not meaningful for a classifier, so we stop at 1)
     subset_sizes = list(range(n_features, 0, -1))
     subset_accuracies = []
 
@@ -495,9 +517,11 @@ def run_dataset1_pipeline():
 def run_dataset2_pipeline():
     """
     Dataset 2:
-    - Multi-class classification.
-    - Compare several classifiers.
-    - Use learning curves to estimate minimum data for 70% accuracy.
+    - Binary (0/1) classification.
+    - Compare four classifiers:
+        Logistic Regression, KNN (k=5), Random Forest, SVM (RBF kernel).
+    - Use learning curves to estimate minimum data for 70% accuracy
+      using the best of these four models.
     """
 
     print("\n" + "=" * 70)
@@ -516,9 +540,9 @@ def run_dataset2_pipeline():
 
     candidates = {
         "LogisticRegression": Classifier("logistic", preprocessor_all, feature_names),
-        "SVC_rbf": Classifier("svc_rbf", preprocessor_all, feature_names),
         "KNN_5": Classifier("knn_5", preprocessor_all, feature_names),
         "RandomForest": Classifier("random_forest", preprocessor_all, feature_names),
+        "SVM": Classifier("svm", preprocessor_all, feature_names),
     }
 
     best_name = None
@@ -611,8 +635,11 @@ def run_dataset2_pipeline():
             f"\n[Dataset 2] Accuracy did not reach {threshold * 100:.0f}% "
             f"in the explored training sizes."
         )
-      
+
+
+# -----------------------------------------------------------
 # Main entry point
+# -----------------------------------------------------------
 
 if __name__ == "__main__":
     run_dataset1_pipeline()

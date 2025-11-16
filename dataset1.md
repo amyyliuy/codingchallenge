@@ -1,42 +1,39 @@
-# Dataset 1 – Conductive vs Non-conductive Classification
+# Dataset 1 – Conductivity classification driven by band gap
 
 ## 1. Aim and data
 
-The goal is to predict whether a material is **conductive** or **non-conductive** from ten measured properties (density, vacancy content, melting temperature, heat conductivity, band gap, crystallinity index, thermal expansion coefficient, Young’s modulus, hardness, lattice parameter). The dataset contains 5000 rows and 11 columns (10 features + `label`). The classes are imbalanced: 4506 non-conductive and 494 conductive samples.
+The goal is to predict whether a material is **conductive** or **non-conductive** from ten measured properties: density, vacancy content, melting temperature, heat conductivity, band gap, crystallinity index, thermal expansion coefficient, Young’s modulus, hardness and lattice parameter. The dataset has 5000 rows and an imbalanced target (`label`: 4506 non-conductive, 494 conductive).
 
 ## 2. Methods
 
-A `Preprocessor` class loads `dataset_1.csv`, prints basic exploratory statistics, and reports missing values. The target column is `label`. The data are split into training and test sets using an 80/20 stratified split (4000 train, 1000 test) so that the class balance is preserved.
+A `Preprocessor` class loads `dataset_1.csv`, prints summary statistics and missing values, and performs an 80/20 stratified train–test split (4000 train, 1000 test). All features are treated as numeric. A `ColumnTransformer` applies a pipeline of median imputation (`SimpleImputer`) and standardisation (`StandardScaler`) to all input features.
 
-All input features are treated as numeric. A `ColumnTransformer` applies a pipeline of `SimpleImputer(strategy="median")` followed by `StandardScaler` to impute missing values and normalise the features.
+For classification we use a `BinaryClassifier` wrapper which builds a scikit-learn `Pipeline(preprocessor, classifier)`. Two models are compared:
 
-A `BinaryClassifier` class wraps scikit-learn models inside a `Pipeline(preprocessor, classifier)`. Two classifiers were compared:
+- Logistic Regression (`max_iter=1000`)
+- Random Forest (`n_estimators=200`, `random_state=42`)
 
-- **Logistic Regression** (linear model, `max_iter=1000`)
-- **Random Forest** (`n_estimators=200`, `random_state=42`)
-
-An `Evaluator` class computes accuracy, precision, recall, F1-score and the full classification report, and saves confusion matrices and feature-importance plots.
+An `Evaluator` class reports accuracy, precision, recall, F1-score, confusion matrices, and a **feature-importance bar plot**. For the best model we also perform a **feature subset study**, retraining logistic regression while reducing the number of features stepwise and plotting accuracy vs number of features (`feature_subset_accuracy.png`).
 
 ## 3. Results
 
-On the held-out test set, both models achieved perfect performance:
+On the held-out test set, both models achieve perfect metrics (accuracy/precision/recall/F1 = 1.00). The confusion matrices show zero misclassified samples.
 
-- Logistic Regression: accuracy 1.00, precision 1.00, recall 1.00, F1-score 1.00
-- Random Forest: accuracy 1.00, precision 1.00, recall 1.00, F1-score 1.00
+The key result is the **feature-importance plot** for the best model. The importance of **`band_gap`** is dramatically larger than that of all other features; the remaining nine are essentially negligible by comparison. This means the classifier has effectively learned a **one-dimensional decision rule**: whether a material is conductive or not is determined almost entirely by its band-gap value.
 
-The confusion matrices for both classifiers show **zero misclassifications**: all 99 conductive and 901 non-conductive samples in the test set are correctly classified.
+Physically, this matches the standard picture from solid-state physics:  
+- materials with a **small or zero band gap** allow electrons to move easily → **conductive**;  
+- materials with a **large band gap** have no available states near the Fermi level → **non-conductive** (insulators).
 
-Feature importance (from the best model) indicates that a small subset of features dominates the decision: band gap, lattice parameter, crystallinity index, Young’s modulus, thermal expansion coefficient and hardness have the highest weights. A bar chart visualises these importances.
-
-To investigate redundancy, we ranked features by importance and retrained logistic regression using every subset size from 10 down to 1 feature. The “accuracy vs number of features” plot shows that test accuracy remains at 1.00 even when only the top few features are used; performance only degrades when very few features are retained.
+The **feature_subset_accuracy** plot reinforces this. We ranked features by importance and retrained logistic regression using subsets from all 10 features down to only the single most important feature. Test accuracy stays at 1.00 for almost all subset sizes, and crucially, **using only `band_gap` already achieves perfect classification**. Adding the remaining features does not improve performance; it only adds redundancy.
 
 ## 4. Discussion and recommendation
 
-The results suggest that Dataset 1 is **almost perfectly separable** using the provided features. Even a simple linear model (logistic regression) can classify the materials without error on the test set, and reducing the input to the most informative 4–6 features does not hurt performance. This is unlikely in noisy real-world measurements, so the dataset should be interpreted as an idealised scenario.
+Dataset 1 is therefore essentially a **threshold problem in band gap**: once the model knows the band-gap value, it can place a decision boundary at some critical band-gap range and correctly label almost every material as conductive or non-conductive. The other descriptors provide very little additional information about conductivity in this dataset.
 
-For a practical deployment based on this dataset, I would recommend:
+For a practical model based on these data, I would recommend:
 
-- Using **logistic regression** as the main classifier, due to its simplicity and interpretability.
-- Focusing on the most important features (especially band gap, lattice parameter and crystallinity index) to reduce measurement cost while keeping high predictive power.
+- Using a simple, interpretable classifier (logistic regression) with **`band_gap` as the primary input**.
+- Optionally including a few secondary features for robustness, but recognising that they contribute almost nothing to predictive power compared to band gap.
 
-Overall, the pipeline meets the brief by including preprocessing, model comparison, confusion matrices, feature-importance visualisation and a systematic feature-subset study.
+This analysis shows that both the feature-importance bar chart and the feature-subset-accuracy curve tell a consistent story: **conductivity in Dataset 1 is almost completely determined by the material’s band gap.**

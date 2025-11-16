@@ -1,54 +1,11 @@
-# Dataset 2 Report – Multi-class Classification and Data Requirements
+Dataset 2 report – model comparison and learning curve
 
-## 1. Problem and Data
+Dataset 2 consists of 400 samples with eight anonymous numerical features (feature_1 … feature_8) and a balanced binary label (200 zeros and 200 ones). As with dataset 1, missing feature values are imputed with the median and all variables are standardised inside a preprocessing pipeline. A stratified 75/25 split produces 300 training and 100 test instances.
 
-Dataset 2 consists of **400 samples** described by 8 numerical features (`feature_1`–`feature_8`) and a binary label (`0` or `1`). The classes are perfectly balanced (**200** samples per class). The aim is to compare several classifiers and estimate the **minimum number of training samples** required to reach at least **70% accuracy**.
+Four classifiers are compared: logistic regression, support vector machine with RBF kernel (SVC_rbf), k-nearest neighbours (k = 5) and random forest. Five-fold cross-validation on the training set shows that KNN has the lowest mean accuracy (about 0.93), logistic regression reaches roughly 0.97, SVC_rbf about 0.987, and random forest 1.00. Test-set performance largely mirrors these trends. KNN achieves 0.97 accuracy and misclassifies 3 positive samples as class 0. Logistic regression reaches 0.99 accuracy, misclassifying only a single positive. Both SVC_rbf and random forest attain perfect test accuracy and confusion matrices with no errors, correctly classifying all 50 negatives and 50 positives.
 
-## 2. Methods
+Because SVC_rbf combines excellent cross-validation accuracy with perfect test performance, it is chosen for the learning-curve analysis. The learning curve is computed by increasing the training size from 5 up to 320 samples and measuring training and cross-validation scores with five-fold CV at each step. With very small training sets (5–9 samples), the cross-validation accuracy fluctuates around 0.58–0.68, indicating high variance and unreliable generalisation when data are scarce. From around 10 samples onward the accuracy quickly rises above 0.8 and then into the 0.9+ range. The script reports that approximately 10 training samples are sufficient to exceed 70% accuracy, but performance continues to improve as more data are added.
 
-A `Preprocessor` class loads `dataset_2.csv`, reports basic statistics and missing values, and performs a stratified train–test split (75% train / 25% test → 300 train, 100 test). Missing values in the features are imputed using `SimpleImputer(strategy="median")`, and all 8 features are standardised with `StandardScaler` inside a `ColumnTransformer`.
+Beyond about 60–80 training samples, both the training and cross-validation curves stabilise around 0.98–0.99, with only a small gap between them. This suggests that the SVC model is powerful enough to fit the underlying structure but not severely overfitting: adding more data yields diminishing returns, but does not cause performance to collapse. A feature-importance plot derived from the random forest model (using its built-in feature_importances_) indicates that predictive power is shared across several features rather than being dominated by a single variable, consistent with the idea that the decision boundary in dataset 2 is genuinely multi-dimensional.
 
-A generic `Classifier` class wraps different scikit-learn models inside a pipeline. We evaluated:
-
-- Logistic Regression (`logistic`)
-- Support Vector Classifier with RBF kernel (`svc_rbf`)
-- k-Nearest Neighbours with k = 5 (`knn_5`)
-- Random Forest (`random_forest`)
-
-For each model we computed:
-
-- **5-fold cross-validation accuracy** on the training set (`cross_val_score`)
-- **Test-set accuracy, precision, recall, F1**, and confusion matrices.
-
-For the best model we also computed a **learning curve** via `learning_curve`, using 5-fold CV and eight training sizes between 10% and 100% of the data.
-
-## 3. Results
-
-Training-set cross-validation (mean ± std):
-
-- Logistic Regression: **0.97 ± 0.02**
-- SVC (RBF): **0.99 ± 0.01**
-- KNN (k=5): **0.93 ± 0.03**
-- Random Forest: **1.00 ± 0.00**
-
-Test-set accuracy:
-
-- Logistic Regression: **0.99**
-- SVC (RBF): **1.00**
-- KNN (k=5): **0.97**
-- Random Forest: **1.00**
-
-Confusion matrices show that SVC and Random Forest classify all 100 test samples correctly, while Logistic Regression and KNN make only one or a few errors. Overall, all models perform very well; non-linear models have a small advantage.
-
-The learning curve for the best model (SVC with RBF kernel) shows CV accuracy quickly rising above 95%. The first training size at which CV accuracy exceeds **70%** is **32 training samples**, and performance stabilises close to 99–100% for larger training sizes.
-
-## 4. Discussion and Recommendation
-
-All models can separate the two classes extremely well on this synthetic data. Given the almost perfect cross-validation and test performance, the limiting factor is not model capacity but the inherent separability of the dataset.
-
-For deployment on data with similar characteristics, we recommend:
-
-- Using a **non-linear model** such as **SVC (RBF kernel)** or **Random Forest**, which achieve perfect accuracy and robust cross-validation performance.
-- Ensuring a training set of at least **32 labelled samples** to reliably exceed 70% accuracy, noting that more data (≈ 200–300 samples) pushes performance close to 100%.
-
-In more realistic scenarios with noisier measurements, Logistic Regression or Random Forest would be attractive due to their simplicity and interpretability, but on this dataset all four algorithms already perform near optimally.
+Overall, dataset 2 shows that several modern classifiers can achieve near-perfect performance on this problem, with SVC_rbf offering an excellent trade-off between accuracy and robustness. The learning curve confirms that a modest amount of data (tens of samples) is enough to train a highly accurate model, while additional data mainly refine the estimate and reduce variance.

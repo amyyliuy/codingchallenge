@@ -1,39 +1,11 @@
-# Dataset 1 – Conductivity classification driven by band gap
+Dataset 1 report – binary classification and feature selection
 
-## 1. Aim and data
+The first dataset contains 5,000 materials with 10 numerical descriptors (density, vacancy_content, band_gap, etc.) and a binary label (conductive / non-conductive). There are missing values in all feature columns but none in the label; these are handled by a preprocessing pipeline that performs median imputation followed by standardisation. The classes are imbalanced (about 4,500 non-conductive vs 500 conductive), so a stratified 80/20 train–test split is used to preserve class proportions.
 
-The goal is to predict whether a material is **conductive** or **non-conductive** from ten measured properties: density, vacancy content, melting temperature, heat conductivity, band gap, crystallinity index, thermal expansion coefficient, Young’s modulus, hardness and lattice parameter. The dataset has 5000 rows and an imbalanced target (`label`: 4506 non-conductive, 494 conductive).
+Two classifiers are trained on the full feature set: logistic regression and random forest. Both achieve perfect test performance: accuracy, precision, recall and F1-score are all 1.00. The confusion matrices show zero misclassifications: all 99 conductive and 901 non-conductive samples in the test set are assigned the correct class by both models. This indicates that the data are almost perfectly separable in the chosen feature space.
 
-## 2. Methods
+To understand which variables drive this separation, logistic regression coefficients are used as feature importances. The bar plot shows that band_gap has a coefficient magnitude several orders of magnitude larger than any other feature; the remaining features have near-zero weights. This means the decision boundary is essentially a threshold on band_gap alone, which is physically sensible: materials with small or zero band gaps behave as conductors, whereas large band gaps correspond to insulators or semiconductors.
 
-A `Preprocessor` class loads `dataset_1.csv`, prints summary statistics and missing values, and performs an 80/20 stratified train–test split (4000 train, 1000 test). All features are treated as numeric. A `ColumnTransformer` applies a pipeline of median imputation (`SimpleImputer`) and standardisation (`StandardScaler`) to all input features.
+This interpretation is strongly supported by the feature subset experiment. Models are retrained using only the top k features, with k decreasing from 10 down to 1. For every subset size from 10 features all the way down to using only band_gap, the test accuracy remains exactly 1.00. The feature_subset_accuracy curve is therefore a flat line at 1.0. Removing lattice_parameter, mechanical properties and other descriptors does not degrade performance at all; the classifier can still perfectly distinguish conductive from non-conductive samples using band_gap alone.
 
-For classification we use a `BinaryClassifier` wrapper which builds a scikit-learn `Pipeline(preprocessor, classifier)`. Two models are compared:
-
-- Logistic Regression (`max_iter=1000`)
-- Random Forest (`n_estimators=200`, `random_state=42`)
-
-An `Evaluator` class reports accuracy, precision, recall, F1-score, confusion matrices, and a **feature-importance bar plot**. For the best model we also perform a **feature subset study**, retraining logistic regression while reducing the number of features stepwise and plotting accuracy vs number of features (`feature_subset_accuracy.png`).
-
-## 3. Results
-
-On the held-out test set, both models achieve perfect metrics (accuracy/precision/recall/F1 = 1.00). The confusion matrices show zero misclassified samples.
-
-The key result is the **feature-importance plot** for the best model. The importance of **`band_gap`** is dramatically larger than that of all other features; the remaining nine are essentially negligible by comparison. This means the classifier has effectively learned a **one-dimensional decision rule**: whether a material is conductive or not is determined almost entirely by its band-gap value.
-
-Physically, this matches the standard picture from solid-state physics:  
-- materials with a **small or zero band gap** allow electrons to move easily → **conductive**;  
-- materials with a **large band gap** have no available states near the Fermi level → **non-conductive** (insulators).
-
-The **feature_subset_accuracy** plot reinforces this. We ranked features by importance and retrained logistic regression using subsets from all 10 features down to only the single most important feature. Test accuracy stays at 1.00 for almost all subset sizes, and crucially, **using only `band_gap` already achieves perfect classification**. Adding the remaining features does not improve performance; it only adds redundancy.
-
-## 4. Discussion and recommendation
-
-Dataset 1 is therefore essentially a **threshold problem in band gap**: once the model knows the band-gap value, it can place a decision boundary at some critical band-gap range and correctly label almost every material as conductive or non-conductive. The other descriptors provide very little additional information about conductivity in this dataset.
-
-For a practical model based on these data, I would recommend:
-
-- Using a simple, interpretable classifier (logistic regression) with **`band_gap` as the primary input**.
-- Optionally including a few secondary features for robustness, but recognising that they contribute almost nothing to predictive power compared to band gap.
-
-This analysis shows that both the feature-importance bar chart and the feature-subset-accuracy curve tell a consistent story: **conductivity in Dataset 1 is almost completely determined by the material’s band gap.**
+Overall, dataset 1 behaves like an idealised teaching example: conductivity is almost completely determined by band_gap, other engineered features are redundant for this task, and both linear and nonlinear models can learn a perfect threshold rule. In a real-world setting one would be cautious about such flawless performance (it may suggest synthetic data or hidden leakage), but within this exercise it clearly demonstrates the link between electronic band structure and macroscopic electrical behaviour.

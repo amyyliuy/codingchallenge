@@ -24,3 +24,9 @@ Because SVC_rbf combines excellent cross-validation accuracy with perfect test p
 Beyond about 60–80 training samples, both the training and cross-validation curves stabilise around 0.98–0.99, with only a small gap between them. This suggests that the SVC model is powerful enough to fit the underlying structure but not severely overfitting: adding more data yields diminishing returns, but does not cause performance to collapse. A feature-importance plot derived from the random forest model (using its built-in feature_importances_) indicates that predictive power is shared across several features rather than being dominated by a single variable, consistent with the idea that the decision boundary in dataset 2 is genuinely multi-dimensional.
 
 Overall, dataset 2 shows that several modern classifiers can achieve near-perfect performance on this problem, with SVC_rbf offering an excellent trade-off between accuracy and robustness. The learning curve confirms that a modest amount of data (tens of samples) is enough to train a highly accurate model, while additional data mainly refine the estimate and reduce variance.
+
+<img width="385" height="384" alt="image" src="https://github.com/user-attachments/assets/f830f112-cfb0-41ea-a273-8fcafb0363c3" />
+<img width="378" height="382" alt="image" src="https://github.com/user-attachments/assets/7b51c1c3-9eba-4d1c-af13-df4e5c8fd661" />
+<img width="376" height="384" alt="image" src="https://github.com/user-attachments/assets/13859419-5ee4-49b8-ad07-2c23aaa57247" />
+<img width="378" height="383" alt="image" src="https://github.com/user-attachments/assets/fa4d8e28-4328-42ae-a3a4-1301cbfd59a2" />
+<img width="551" height="386" alt="image" src="https://github.com/user-attachments/assets/5b9147f5-d594-4b9b-8c7c-a5101523bb16" />

@@ -2,7 +2,22 @@ Dataset 2 report – model comparison and learning curve
 
 Dataset 2 consists of 400 samples with eight anonymous numerical features (feature_1 … feature_8) and a balanced binary label (200 zeros and 200 ones). As with dataset 1, missing feature values are imputed with the median and all variables are standardised inside a preprocessing pipeline. A stratified 75/25 split produces 300 training and 100 test instances.
 
-Four classifiers are compared: logistic regression, support vector machine with RBF kernel (SVC_rbf), k-nearest neighbours (k = 5) and random forest. Five-fold cross-validation on the training set shows that KNN has the lowest mean accuracy (about 0.93), logistic regression reaches roughly 0.97, SVC_rbf about 0.987, and random forest 1.00. Test-set performance largely mirrors these trends. KNN achieves 0.97 accuracy and misclassifies 3 positive samples as class 0. Logistic regression reaches 0.99 accuracy, misclassifying only a single positive. Both SVC_rbf and random forest attain perfect test accuracy and confusion matrices with no errors, correctly classifying all 50 negatives and 50 positives.
+Four classifiers were evaluated on Dataset 2: logistic regression, SVC with RBF kernel, k-nearest neighbours (k = 5), and random forest. Five-fold cross-validation on the training set gives:
+
+
+KNN: mean accuracy ≈ 0.93 (lowest)
+
+
+Logistic regression: mean accuracy ≈ 0.97
+
+
+SVC_rbf: mean accuracy ≈ 0.987
+
+
+Random forest: mean accuracy = 1.00
+
+
+On the held-out test set, the same pattern appears. KNN reaches 0.97 accuracy, misclassifying 3 positive samples as class 0. Logistic regression achieves 0.99 accuracy with only one positive misclassified. Both SVC_rbf and random forest obtain 1.00 accuracy and perfectly clean confusion matrices, correctly labelling all 50 class-0 and 50 class-1 samples.
 
 Because SVC_rbf combines excellent cross-validation accuracy with perfect test performance, it is chosen for the learning-curve analysis. The learning curve is computed by increasing the training size from 5 up to 320 samples and measuring training and cross-validation scores with five-fold CV at each step. With very small training sets (5–9 samples), the cross-validation accuracy fluctuates around 0.58–0.68, indicating high variance and unreliable generalisation when data are scarce. From around 10 samples onward the accuracy quickly rises above 0.8 and then into the 0.9+ range. The script reports that approximately 10 training samples are sufficient to exceed 70% accuracy, but performance continues to improve as more data are added.
 

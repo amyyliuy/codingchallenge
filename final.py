@@ -1,18 +1,3 @@
-"""
-End-to-end solution for Dataset 1 and Dataset 2.
-
-Structure is tailored to the marking criteria:
-
-- Preprocessor  : data loading, cleaning, normalisation, train-test splitting
-- Classifier    : wraps scikit-learn models (BinaryClassifier for dataset 1 use)
-- Evaluator     : computes metrics and produces visualisations
-
-We use:
-- pandas / numpy for data handling
-- scikit-learn for preprocessing, models, cross-validation, learning curves
-- matplotlib for plots
-"""
-
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
@@ -36,8 +21,8 @@ from sklearn.metrics import (
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 
 DATASET_1_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_1.csv"
 DATASET_2_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_2.csv"
@@ -157,7 +142,7 @@ class Preprocessor:
 class Classifier:
     """
     Generic classifier wrapper which holds:
-      - a scikit-learn model (e.g. LogisticRegression, RandomForest, KNN, SVM)
+      - a scikit-learn model (e.g. LogisticRegression, RandomForest, KNN, SVM, DecisionTree)
       - the preprocessing pipeline
     It exposes .fit(), .predict() and .get_feature_importances().
     """
@@ -178,13 +163,13 @@ class Classifier:
             model = RandomForestClassifier(
                 n_estimators=200, random_state=42
             )
-        elif model_name == "decision_tree":
-            model = DecisionTreeClassifier(random_state=42)
         elif model_name == "knn_5":
             model = KNeighborsClassifier(n_neighbors=5)
         elif model_name == "svm":
             # SVM classifier, here using RBF kernel
             model = SVC(kernel="rbf", gamma="scale")
+        elif model_name == "decision_tree":
+            model = DecisionTreeClassifier(random_state=42)
         else:
             raise ValueError(f"Unknown model name: {model_name}")
 
@@ -213,8 +198,8 @@ class Classifier:
         Tries to expose feature importances from the underlying model.
 
         - For linear models (e.g. LogisticRegression, linear SVM) we use |coef_|.
-        - For tree-based models (e.g. RandomForest) we use feature_importances_.
-        - KNN does not expose feature importances.
+        - For tree-based models (e.g. RandomForest, DecisionTree) we use feature_importances_.
+        - KNN and kernel SVM do not expose feature importances.
         """
         clf = self.pipeline.named_steps["classifier"]
 
@@ -256,6 +241,7 @@ class Evaluator:
       - feature importance plots
       - feature subset vs accuracy plots (Dataset 1)
       - learning curves (Dataset 2)
+      - CV accuracy bar chart (Dataset 2)
     """
 
     def __init__(self, output_dir: Path):
@@ -427,6 +413,39 @@ class Evaluator:
         plt.close()
         print(f"[Evaluator] Saved learning curve to {path}")
 
+    # ---- CV accuracy bar chart (Dataset 2) ----------------------------------
+
+    def plot_cv_accuracy_bar(
+        self,
+        model_names: List[str],
+        cv_means: List[float],
+        title: str,
+        filename: str,
+    ) -> None:
+        """
+        Bar chart of mean cross-validation accuracy for each model.
+        Y-axis is zoomed so differences between ~0.93–1.00 are visible.
+        """
+        plt.figure(figsize=(7, 5))
+
+        indices = np.arange(len(model_names))
+        plt.bar(indices, cv_means)
+
+        plt.xticks(indices, model_names, rotation=15)
+        plt.ylabel("Mean CV accuracy")
+        plt.title(title)
+
+        # Zoom y-axis to highlight differences
+        plt.ylim(0.90, 1.00)
+
+        plt.grid(axis="y", linestyle="--", alpha=0.4)
+        plt.tight_layout()
+
+        path = self.output_dir / filename
+        plt.savefig(path)
+        plt.close()
+        print(f"[Evaluator] Saved CV accuracy bar chart to {path}")
+
 
 # -------------------------------------------------------------------
 # 4. PIPELINES FOR DATASET 1 AND DATASET 2
@@ -536,10 +555,10 @@ def run_dataset2_pipeline():
     """
     Dataset 2:
     - Binary (0/1) classification.
-    - Compare four classifiers:
-        Logistic Regression, KNN (k=5), Random Forest, SVM (RBF kernel).
+    - Compare five classifiers:
+        Logistic Regression, KNN (k=5), Random Forest, SVM (RBF kernel), Decision Tree.
     - Use learning curves to estimate minimum data for 70% accuracy
-      using the best of these four models.
+      using the best of these models.
     """
 
     print("\n" + "=" * 70)
@@ -568,6 +587,9 @@ def run_dataset2_pipeline():
     best_acc = -np.inf
     best_pipeline: Optional[Pipeline] = None
 
+    # store mean CV accuracies for bar chart
+    cv_means_dict: Dict[str, float] = {}
+
     # --- step 2: cross-validation + test evaluation --------------------------
 
     for name, clf in candidates.items():
@@ -576,10 +598,15 @@ def run_dataset2_pipeline():
         cv_scores = cross_val_score(
             clf.pipeline, X_train, y_train, cv=5, scoring="accuracy", n_jobs=-1
         )
+        mean_cv = cv_scores.mean()
+        std_cv = cv_scores.std()
         print(
-            f"  CV accuracy: mean={cv_scores.mean():.4f}, "
-            f"std={cv_scores.std():.4f}"
+            f"  CV accuracy: mean={mean_cv:.4f}, "
+            f"std={std_cv:.4f}"
         )
+
+        # save mean CV accuracy for plotting later
+        cv_means_dict[name] = mean_cv
 
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
@@ -596,6 +623,15 @@ def run_dataset2_pipeline():
     print(
         f"\n[Dataset 2] Best test accuracy: {best_acc:.4f} "
         f"with model {best_name}"
+    )
+
+    # --- step 2.5: bar chart of CV accuracies --------------------------------
+
+    evaluator.plot_cv_accuracy_bar(
+        model_names=list(cv_means_dict.keys()),
+        cv_means=list(cv_means_dict.values()),
+        title="Dataset 2: Cross-validation accuracy by model",
+        filename="cv_accuracy_bar.png",
     )
 
     # --- step 3: learning curve for best model -------------------------------

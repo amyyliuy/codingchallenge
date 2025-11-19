@@ -1,3 +1,18 @@
+"""
+End-to-end solution for Dataset 1 and Dataset 2.
+
+Structure is tailored to the marking criteria:
+
+- Preprocessor  : data loading, cleaning, normalisation, train-test splitting
+- Classifier    : wraps scikit-learn models (BinaryClassifier for dataset 1 use)
+- Evaluator     : computes metrics and produces visualisations
+
+We use:
+- pandas / numpy for data handling
+- scikit-learn for preprocessing, models, cross-validation, learning curves
+- matplotlib for plots
+"""
+
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
@@ -21,6 +36,7 @@ from sklearn.metrics import (
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 
 DATASET_1_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_1.csv"
@@ -162,6 +178,8 @@ class Classifier:
             model = RandomForestClassifier(
                 n_estimators=200, random_state=42
             )
+        elif model_name == "decision_tree":
+            model = DecisionTreeClassifier(random_state=42)
         elif model_name == "knn_5":
             model = KNeighborsClassifier(n_neighbors=5)
         elif model_name == "svm":
@@ -543,6 +561,7 @@ def run_dataset2_pipeline():
         "KNN_5": Classifier("knn_5", preprocessor_all, feature_names),
         "RandomForest": Classifier("random_forest", preprocessor_all, feature_names),
         "SVM": Classifier("svm", preprocessor_all, feature_names),
+        "DecisionTree": Classifier("decision_tree", preprocessor_all, feature_names),
     }
 
     best_name = None

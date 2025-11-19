@@ -24,8 +24,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-DATASET_1_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_1.csv"
-DATASET_2_PATH = "/Users/amyliumacbook/Library/Application Support/JetBrains/PyCharm2024.3/scratches/Data/dataset_2.csv"
+DATASET_1_PATH = "dataset_1.csv"
+DATASET_2_PATH = "dataset_2.csv"
 
 PLOTS_ROOT = Path("plots")
 PLOTS_ROOT.mkdir(exist_ok=True)

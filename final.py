@@ -51,7 +51,7 @@ class Preprocessor:
 
     # ---- data loading / info -------------------------------------------------
 
-    def load_data(self) -> pd.DataFrame:
+    def load_data(self) -> pd.DataFrame:   # Read the CSV file once and keep it in self.df for later use
         print(f"\n[Preprocessor] Loading data from {self.data_path} ...")
         self.df = pd.read_csv(self.data_path)
         print(f"[Preprocessor] Shape: {self.df.shape}")
@@ -75,6 +75,9 @@ class Preprocessor:
     def get_features_and_target(self) -> Tuple[pd.DataFrame, pd.Series]:
         if self.df is None:
             raise ValueError("Data not loaded. Call load_data() first.")
+        # Separate the DataFrame into:
+        #   X – all feature columns
+        #   y – target label column
         X = self.df.drop(columns=[self.target_col])
         y = self.df[self.target_col]
         return X, y
@@ -102,14 +105,10 @@ class Preprocessor:
         self,
         selected_features: Optional[List[str]] = None,
     ) -> Tuple[ColumnTransformer, List[str]]:
-        """
-        Builds a ColumnTransformer that:
-          - imputes missing values (median)
-          - standardises numeric features
-
-        If selected_features is None, use all non-target columns.
-        """
-
+        # Choose which numeric features to use and create a ColumnTransformer
+        # that applies:
+        #   1) SimpleImputer(median) to handle missing values
+        #   2) StandardScaler() to normalise feature scales
         if self.df is None:
             raise ValueError("Data not loaded. Call load_data() first.")
 
@@ -148,6 +147,8 @@ class Classifier:
     """
 
     def __init__(
+        # Choose the underlying sklearn model based on a simple string name.
+        # This makes it easy to loop over several models with one unified interface.
         self,
         model_name: str,
         preprocessor: ColumnTransformer,
@@ -195,11 +196,11 @@ class Classifier:
 
     def get_feature_importances(self) -> Optional[Dict[str, float]]:
         """
-        Tries to expose feature importances from the underlying model.
-
-        - For linear models (e.g. LogisticRegression, linear SVM) we use |coef_|.
-        - For tree-based models (e.g. RandomForest, DecisionTree) we use feature_importances_.
-        - KNN and kernel SVM do not expose feature importances.
+        Extract a simple feature-importance measure when the underlying model
+        supports it:
+          - linear models: use absolute value of the learned coefficients
+          - tree models  : use the model's built-in feature_importances_
+        For models like KNN or kernel SVM, no feature importances are available.
         """
         clf = self.pipeline.named_steps["classifier"]
 
@@ -236,14 +237,19 @@ BinaryClassifier = Classifier
 
 class Evaluator:
     """
-    Computes metrics and generates visualisations:
-      - confusion matrix
-      - feature importance plots
-      - feature subset vs accuracy plots (Dataset 1)
-      - learning curves (Dataset 2)
-      - CV accuracy bar chart (Dataset 2)
-    """
+    Collects all evaluation and visualisation logic in one place:
 
+      - metrics(): prints accuracy, precision, recall, F1 and a full
+                   classification report.
+      - plot_confusion_matrix(): saves confusion matrices as PNGs.
+      - plot_feature_importances(): bar chart of feature importance.
+      - plot_feature_subset_performance(): accuracy vs number of features
+                                           (Dataset 1).
+      - plot_learning_curve(): training / CV accuracy vs training set size
+                               (Dataset 2).
+      - plot_cv_accuracy_bar(): compares mean CV accuracy across models
+                                (Dataset 2).
+    """
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -416,6 +422,9 @@ class Evaluator:
     # ---- CV accuracy bar chart (Dataset 2) ----------------------------------
 
     def plot_cv_accuracy_bar(
+        # Bar chart for mean CV accuracy of each candidate model.
+        # Y-axis is restricted to 0.90–1.01 so small differences
+        # between 0.93 and 1.00 are clearly visible.
         self,
         model_names: List[str],
         cv_means: List[float],
@@ -457,12 +466,17 @@ PLOTS_ROOT.mkdir(exist_ok=True)
 
 def run_dataset1_pipeline():
     """
-    Dataset 1:
-    - Binary classification (conductive vs non-conductive).
-    - Use BinaryClassifier (Logistic Regression & Random Forest).
-    - Analyse feature importance and effect of using fewer features.
-    """
+    High-level pipeline for Dataset 1:
 
+    1. Load and inspect the materials dataset.
+    2. Build a numeric preprocessing pipeline.
+    3. Train Logistic Regression and Random Forest models.
+    4. Compare their test accuracy and keep the best model.
+    5. For the best model:
+         - plot feature importances
+         - rerun Logistic Regression with progressively fewer top features
+           and plot accuracy vs number of features.
+    """
     print("\n" + "=" * 70)
     print("DATASET 1: Binary classification and feature selection")
     print("=" * 70)
@@ -553,14 +567,28 @@ def run_dataset1_pipeline():
 
 def run_dataset2_pipeline():
     """
-    Dataset 2:
-    - Binary (0/1) classification.
-    - Compare five classifiers:
-        Logistic Regression, KNN (k=5), Random Forest, SVM (RBF kernel), Decision Tree.
-    - Use learning curves to estimate minimum data for 70% accuracy
-      using the best of these models.
-    """
+    High-level pipeline for Dataset 2:
 
+    1. Load and inspect the binary dataset (labels 0/1).
+    2. Build a numeric preprocessing pipeline.
+    3. Define five candidate models:
+         - Logistic Regression
+         - KNN (k = 5)
+         - Random Forest
+         - SVM with RBF kernel
+         - Decision Tree
+    4. For each model:
+         - compute 5-fold CV accuracy on the training set
+         - train on the full training set
+         - evaluate on the held-out test set and save confusion matrix
+         - track which model achieves the best test accuracy.
+    5. Plot a bar chart comparing mean CV accuracy across all models.
+    6. For the best model:
+         - compute a learning curve using increasing training sizes
+         - plot training vs cross-validation accuracy
+         - estimate the minimum number of samples required to reach
+           70% accuracy.
+    """
     print("\n" + "=" * 70)
     print("DATASET 2: Model comparison and learning curve")
     print("=" * 70)

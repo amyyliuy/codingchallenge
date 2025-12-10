@@ -310,33 +310,26 @@ class Evaluator:
         title: str,
         filename: str,
         top_n: Optional[int] = None,
-    ) -> None:   
-    """
-     Plots feature importance values for Dataset 1. 
-     Can optionally limit to the top N most important features.
-     """ 
+    ) -> None:
         if not feature_importances:
             print("[Evaluator] No feature importances to plot.")
             return
-        items = list(feature_importances.items()) # if dictionary is empty, nothing to plot
-        # Optionally, keep only the first N(already sorted before passed here) 
+
+        items = list(feature_importances.items())
         if top_n is not None:
             items = items[:top_n]
 
-        # Split into two lists: feature names and numeric importance values
         features, values = zip(*items)
 
-        # Create figure and horizontal bar chart
         plt.figure(figsize=(8, 5))
-        y_pos = np.arange(len(features)) # Numeric y-axis positions
-        plt.barh(y_pos, values) # Horizontal bar plot
-        plt.yticks(y_pos, features) # Label bars with feature names
-        plt.gca().invert_yaxis() # Highest importance at the top
+        y_pos = np.arange(len(features))
+        plt.barh(y_pos, values)
+        plt.yticks(y_pos, features)
+        plt.gca().invert_yaxis()
         plt.xlabel("Importance")
         plt.title(title)
         plt.tight_layout()
 
-        # Save to evaluator output directory 
         path = self.output_dir / filename
         plt.savefig(path)
         plt.close()
@@ -350,17 +343,13 @@ class Evaluator:
         accuracies: List[float],
         title: str,
         filename: str,
-    ) -> None: # 
-    """
-    Plots accuracy as a function of the number of selected features. 
-    This is used when evaluating different feature subsets for Dataset 1
-    """
+    ) -> None:
         plt.figure(figsize=(6, 4))
-        plt.plot(subset_sizes, accuracies, marker="o") # Line with circular markers
+        plt.plot(subset_sizes, accuracies, marker="o")
         plt.xlabel("Number of features")
         plt.ylabel("Accuracy")
         plt.title(title)
-        plt.grid(True) # Add grid for readability
+        plt.grid(True)
         plt.tight_layout()
 
         path = self.output_dir / filename
@@ -378,17 +367,6 @@ class Evaluator:
         title: str,
         filename: str,
     ) -> None:
-    """
-    Creates a learning curve to show how training/test accuracy changes as a function of training set size.
-    Parameters:
-    - train_sizes: Array of traing set sizes used for evaluation.
-    - train_scores: 2D array of training scores for each CV fold and training size.
-    - test_scores: 2D array of validation scores for each CV fold and training size.
-    - title: Title of the plot.
-    - filename: Name of the file to save the figure.
-    It is used for dataset 2 to determine minimum required data for 70% accuracy, and also diagnoses underfitting/overfitting
-    """ 
-    # Compute mean and standard deviation across CV folds
         train_mean = np.mean(train_scores, axis=1)
         train_std = np.std(train_scores, axis=1)
         test_mean = np.mean(test_scores, axis=1)
@@ -396,7 +374,7 @@ class Evaluator:
 
         plt.figure(figsize=(7, 5))
 
-        # Plots the mean training score curve: Smaller markers and thinner lines so the dense curve is clearer
+        # Smaller markers and thinner lines so the dense curve is clearer
         plt.plot(
             train_sizes,
             train_mean,
@@ -405,7 +383,7 @@ class Evaluator:
             markersize=3,
             linewidth=1.0,
             label="Training score",
-        ) # Plots the mean cross-validation curve
+        )
         plt.plot(
             train_sizes,
             test_mean,
@@ -415,7 +393,7 @@ class Evaluator:
             linewidth=1.0,
             label="Cross-validation score",
         )
-        # Adds shaded regions representing +/-1 standard deviation 
+
         plt.fill_between(
             train_sizes,
             train_mean - train_std,
@@ -436,7 +414,6 @@ class Evaluator:
         plt.grid(True)
         plt.tight_layout()
 
-        # Saves the plot to the specified path
         path = self.output_dir / filename
         plt.savefig(path)
         plt.close()
@@ -458,23 +435,23 @@ class Evaluator:
         Bar chart of mean cross-validation accuracy for each model.
         Y-axis is zoomed so differences between ~0.93–1.00 are visible.
         """
-        plt.figure(figsize=(7, 5)) # Set figure size 
+        plt.figure(figsize=(7, 5))
 
-        indices = np.arange(len(model_names)) # Numerical positions for bars
-        plt.bar(indices, cv_means) # Draws the bars
+        indices = np.arange(len(model_names))
+        plt.bar(indices, cv_means)
 
-        plt.xticks(indices, model_names, rotation=15) # Labels each bar with model name
-        plt.ylabel("Mean CV accuracy") # Y - Axis Label
-        plt.title(title) # Plot title
+        plt.xticks(indices, model_names, rotation=15)
+        plt.ylabel("Mean CV accuracy")
+        plt.title(title)
 
-        # Zoom y-axis to highlight differences between top models
+        # Zoom y-axis to highlight differences
         plt.ylim(0.90, 1.00)
 
-        plt.grid(axis="y", linestyle="--", alpha=0.4) # Adds light horizontal grid lines for easier comparison
-        plt.tight_layout() # Adjusts spacing
+        plt.grid(axis="y", linestyle="--", alpha=0.4)
+        plt.tight_layout()
 
-        path = self.output_dir / filename # Outputs file path
-        plt.savefig(path) # Saves the figure
+        path = self.output_dir / filename
+        plt.savefig(path)
         plt.close()
         print(f"[Evaluator] Saved CV accuracy bar chart to {path}")
 

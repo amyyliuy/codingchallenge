@@ -5,6 +5,8 @@ Dataset 2 investigates a balanced binary classification problem (200 class-0 and
 Five-fold cross-validation on the training set shows that KNN has the lowest mean accuracy (≈0.93). Logistic regression performs better with a mean CV accuracy of about 0.97. SVM reaches ≈0.987 mean CV accuracy, while random forest achieves perfect cross-validation performance with a mean of 1.00 and zero standard deviation, indicating that it consistently classifies all folds correctly.
 
 Test-set performance mirrors these trends. KNN attains 0.97 accuracy and misclassifies three positive samples as class 0. Logistic regression achieves 0.99 accuracy, with only one positive misclassified. Both SVM and random forest reach 1.00 test accuracy and have confusion matrices with no errors, correctly identifying all 50 negatives and 50 positives. Although SVM and random forest tie on the test set, random forest is preferred overall because it also has perfect cross-validation accuracy.
+<img width="696" height="494" alt="image" src="https://github.com/user-attachments/assets/d2e939e0-bbe4-414d-aed5-adb9f7a9e5b5" />
+
 
 A learning curve is generated for the random forest model, using training sizes from 5 up to 320 samples. The training accuracy is 1.00 for all sizes, showing that the random forest model can fit the training data perfectly well. The cross-validation curve starts around 0.63 at 5 training samples and rises quickly; once the training size exceeds 7 samples, the random forest consistently achieves more than 70% accuracy. With around 15–20 training samples the cross-validation accuracy already exceeds 0.90, and from about 30–40 samples onwards it stabilises above 0.98, approaching the near-perfect regime seen at larger training sizes.
 

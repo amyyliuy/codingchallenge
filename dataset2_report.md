@@ -20,7 +20,7 @@ Although SVM and random forest tie on the test set, random forest is preferred o
 
 A learning curve is generated for the random forest model, using training sizes from 5 up to 320 samples. The training accuracy is 1.00 for all sizes, showing that the random forest model can fit the training data perfectly well. The cross-valida+on curve starts around 0.63 at 5 training samples and rises quickly; once the training size exceeds 10 samples, the random forest consistently achieves more than 70% accuracy. The first +me when it exceeded 70% accuracy at n = 7, it dropped below 70% again at n = 9, and only above n = 10 do a consistent increase in accuracy takes place as indicated in the learning curve below.
 
-With around 15–20 training samples the cross-valida+on accuracy already exceeds 0.90, and from about 30–40 samples onwards it stabilises above 0.98, approaching the near-perfect regime seen at larger training sizes.
+With around 15–20 training samples the cross-validation accuracy already exceeds 0.90, and from about 30–40 samples onwards it stabilises above 0.98, approaching the near-perfect regime seen at larger training sizes.
 
 <img width="1064" height="734" alt="image" src="https://github.com/user-attachments/assets/5e13b341-c022-4a85-99e2-02d8dceafcea" />
 

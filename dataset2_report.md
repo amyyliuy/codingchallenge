@@ -23,5 +23,6 @@ A learning curve is generated for the random forest model, using training sizes 
 Overall, this analysis shows that all four models can learn the pattern in dataset 2 very effectively, but random forest offers the best combination of high and stable performance on both cross-validation and the held-out test set, so it is chosen as the best model to classify Dataset 2.
 
 
-<img width="558" height="394" alt="image" src="https://github.com/user-attachments/assets/36bc45e7-691b-4c56-8420-482cc0376de9" />
+<img width="696" height="496" alt="image" src="https://github.com/user-attachments/assets/93404aa0-2a5b-44fa-985c-d2da1d93aeac" />
+
 

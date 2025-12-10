@@ -4,6 +4,11 @@ Dataset 2 investigates a balanced binary classification problem (200 class-0 and
 
 Five-fold cross-validation on the training set shows that KNN has the lowest mean accuracy (≈0.93). Logistic regression performs better with a mean CV accuracy of about 0.97. SVM reaches ≈0.987 mean CV accuracy, while random forest achieves perfect cross-validation performance with a mean of 1.00 and zero standard deviation, indicating that it consistently classifies all folds correctly.
 
+<img width="385" height="384" alt="image" src="https://github.com/user-attachments/assets/f830f112-cfb0-41ea-a273-8fcafb0363c3" />
+<img width="378" height="382" alt="image" src="https://github.com/user-attachments/assets/7b51c1c3-9eba-4d1c-af13-df4e5c8fd661" />
+<img width="376" height="384" alt="image" src="https://github.com/user-attachments/assets/13859419-5ee4-49b8-ad07-2c23aaa57247" />
+<img width="377" height="385" alt="image" src="https://github.com/user-attachments/assets/9997b0a3-f5a5-404a-b826-3b695185230e" />
+
 Test-set performance mirrors these trends. KNN attains 0.97 accuracy and misclassifies three positive samples as class 0. Logistic regression achieves 0.99 accuracy, with only one positive misclassified. Both SVM and random forest reach 1.00 test accuracy and have confusion matrices with no errors, correctly identifying all 50 negatives and 50 positives. Although SVM and random forest tie on the test set, random forest is preferred overall because it also has perfect cross-validation accuracy as shown in the bar graph chart below.
 
 
@@ -14,9 +19,6 @@ A learning curve is generated for the random forest model, using training sizes 
 
 Overall, this analysis shows that all four models can learn the pattern in dataset 2 very effectively, but random forest offers the best combination of high and stable performance on both cross-validation and the held-out test set, so it is chosen as the best model to classify Dataset 2.
 
-<img width="385" height="384" alt="image" src="https://github.com/user-attachments/assets/f830f112-cfb0-41ea-a273-8fcafb0363c3" />
-<img width="378" height="382" alt="image" src="https://github.com/user-attachments/assets/7b51c1c3-9eba-4d1c-af13-df4e5c8fd661" />
-<img width="376" height="384" alt="image" src="https://github.com/user-attachments/assets/13859419-5ee4-49b8-ad07-2c23aaa57247" />
-<img width="377" height="385" alt="image" src="https://github.com/user-attachments/assets/9997b0a3-f5a5-404a-b826-3b695185230e" />
+
 <img width="558" height="394" alt="image" src="https://github.com/user-attachments/assets/36bc45e7-691b-4c56-8420-482cc0376de9" />
 

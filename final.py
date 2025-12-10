@@ -817,25 +817,22 @@ def run_dataset2_pipeline():
     # --- step 3: learning curve for best model -------------------------------
 
     if best_pipeline is None:
-        # Safety check; should not happen if at least one model was evaluated
         return
 
     X, y = pre.get_features_and_target()
 
     print("\n[Dataset 2] Computing learning curve for best model...")
 
-    # learning_curve requires that each train size satisfies:
-    #   train_size >= cv_folds
-    #   train_size <= n_samples * (cv_folds-1)/cv_folds
-    n_samples = X.shape[0]   # e.g. 400 samples in the dataset
+    # learning_curve requires that the number of samples used at each step
+    # is at least `cv` (here 5) and at most n_samples * (cv-1)/cv.
+    n_samples = X.shape[0]  # 400 in your dataset
     cv_folds = 5
-    min_train_size = cv_folds                    # smallest possible size
-    max_train_size = int(n_samples * (cv_folds - 1) / cv_folds)  # e.g. 400*4/5 = 320
+    min_train_size = cv_folds  # smallest possible size = 5
+    max_train_size = int(n_samples * (cv_folds - 1) / cv_folds)  # 400 * 4/5 = 320
 
-    # Use a dense range of absolute train sizes: 5, 6, 7, ..., max_train_size
+    # Absolute train sizes: 5, 6, 7, ..., 320
     train_sizes = np.arange(min_train_size, max_train_size + 1, 1)
 
-    # Compute learning curve: training and validation scores for each size
     train_sizes, train_scores, test_scores = learning_curve(
         best_pipeline,
         X,
@@ -853,19 +850,34 @@ def run_dataset2_pipeline():
         title=f"Learning curve ({best_name})",
         filename="learning_curve.png",
     )
-
-    # Compute the mean validation accuracy for each train size
+    # Mean CV accuracy at each training size (average over folds).
     test_mean = np.mean(test_scores, axis=1)
-    threshold = 0.70   # Desired target accuracy (70%)
+    # Targets performance level we care about (70% accuracy).
+    threshold = 0.70
+    # Will stores the *first* training size that meets our stability condition.
     min_samples = None
-
-    # Find the smallest training size that achieves >= 70% mean CV accuracy
-    for n, score in zip(train_sizes, test_mean):
+    # How much drop below the threshold we still consider acceptable (1% here).
+    tolerance = 0.01  # Allow 1% drop.
+    # Loops over each training size n and its corresponding mean accuracy score.
+    for i, (n, score) in enumerate(zip(train_sizes, test_mean)):
+        # Prints a nice summary line for this point on the learning curve.
         print(f"  Train size {n:4d}: CV accuracy = {score:.4f}")
+        
+    # Only start looking for a candidate point if:
+    #   - this point reaches the threshold.
+    #   - we haven't already found a valid min_samples.
         if score >= threshold and min_samples is None:
-            min_samples = int(n)
+            # Considers all accuracies from this point onwards.
+            future_scores = test_mean[i:]
 
+            # Checks if, after this point, the accuracy never drops.
+            # more than 'tolerance' below the threshold.
+            # i.e. if the *worst* future score is still ≥ (threshold - tolerance).
+            if min(future_scores) >= (threshold - tolerance):
+                # Then this n is our minimal stable sample size.
+                min_samples = int(n)
     if min_samples is not None:
+
         print(
             f"\n[Dataset 2] Minimum samples to reach "
             f"{threshold * 100:.0f}% accuracy ≈ {min_samples}"
@@ -882,9 +894,5 @@ def run_dataset2_pipeline():
 # -----------------------------------------------------------
 
 if __name__ == "__main__":
-    # Run the two separate pipelines when the script is executed directly.
-    # First: Dataset 1 – binary classification and feature selection.
     run_dataset1_pipeline()
-
-    # Second: Dataset 2 – model comparison and learning curve analysis.
     run_dataset2_pipeline()

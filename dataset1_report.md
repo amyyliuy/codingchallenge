@@ -7,12 +7,18 @@ Two classifiers are trained on the full feature set: logistic regression and ran
 <img width="395" height="352" alt="image" src="https://github.com/user-attachments/assets/646b9d1f-1c3d-4839-800e-2bc6f37b3f1f" />
 <img width="395" height="352" alt="image" src="https://github.com/user-attachments/assets/f172d8f8-076c-41df-a8ac-672ea9e29c52" />
 
-To understand which variables drive this separation, logistic regression coefficients are used as feature importances. The bar plot shows that the feature "band_gap" has a coefficient several orders of magnitude larger than any other feature as the remaining features have near-zero weights. This means the decision boundary is essentially a threshold on band_gap alone, which is physically sensible since materials with only zero band gaps behave as conductors, whereas large or small band gaps correspond to insulators or semiconductors. The client should thus only measure the bandgap to determine whether a material is conductive or not, significantly decreasing the cost of measuring it.
+To understand which variables drive this separation, logistic regression coefficients are used as feature importances. 
 
-This interpretation is strongly supported by the feature subset experiment. Models are retrained using only the top k features, with k decreasing from 10 down to 1. For every subset size from 10 features all the way down to using only band_gap, the test accuracy remains exactly 1.00. The feature_subset_accuracy curve is therefore a flat line at 1.0. Removing lattice_parameter, mechanical properties and other descriptors does not degrade performance at all; the classifier can still perfectly distinguish conductive from non-conductive samples using band_gap alone.
+<img width="637" height="386" alt="image" src="https://github.com/user-attachments/assets/a881b689-da1b-461d-8849-b60e764026c9" />
+
+The bar plot shows that the feature "band_gap" has a coefficient several orders of magnitude larger than any other feature as the remaining features have near-zero weights. This means the decision boundary is essentially a threshold on band_gap alone, which is physically sensible since materials with only zero band gaps behave as conductors, whereas large or small band gaps correspond to insulators or semiconductors. The client should thus only measure the bandgap to determine whether a material is conductive or not, significantly decreasing the cost of measuring it.
+
+This interpretation is strongly supported by the feature subset experiment. 
+
+<img width="582" height="378" alt="image" src="https://github.com/user-attachments/assets/7f72e86e-36d4-4fad-ac41-7441b63bdce9" />
+
+Models are retrained using only the top k features, with k decreasing from 10 down to 1. For every subset size from 10 features all the way down to using only band_gap, the test accuracy remains exactly 1.00. The feature_subset_accuracy curve is therefore a flat line at 1.0. Removing lattice_parameter, mechanical properties and other descriptors does not degrade performance at all; the classifier can still perfectly distinguish conductive from non-conductive samples using band_gap alone.
 
 Overall, for the materials in dataset 1 the model behaviour is very clear from a client perspective: the conductive or non-conductive label is fully determined by the bandgap value, and the additional engineered features do not change the prediction.
 
 
-<img width="637" height="386" alt="image" src="https://github.com/user-attachments/assets/a881b689-da1b-461d-8849-b60e764026c9" />
-<img width="582" height="378" alt="image" src="https://github.com/user-attachments/assets/7f72e86e-36d4-4fad-ac41-7441b63bdce9" />

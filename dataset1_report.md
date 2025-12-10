@@ -2,7 +2,10 @@ Dataset 1 report – binary classification and feature selection
 
 The first dataset contains 5,000 materials with 10 numerical descriptors (density, vacancy_content, band_gap, etc.) and a binary label (conductive / non-conductive). There are missing values in all feature columns but none in the label; these are handled by a preprocessing pipeline that performs median imputation followed by standardisation. The classes are imbalanced (about 4,500 non-conductive vs 500 conductive), so a stratified 80/20 train–test split is used to preserve class proportions.
 
-Two classifiers are trained on the full feature set: logistic regression and random forest. Both achieve perfect test performance: accuracy, precision, recall and F1-score are all 1.00. The confusion matrices show zero misclassifications: all 99 conductive and 901 non-conductive samples in the test set are assigned the correct class by both models. This indicates that the data are almost perfectly separable in the chosen feature space.
+Two classifiers are trained on the full feature set: logistic regression and random forest. Both achieve perfect test performance: accuracy, precision, recall and F1-score are all 1.00. The confusion matrices show zero misclassifications: all 99 conductive and 901 non-conductive samples in the test set are assigned the correct class by both models. This indicates that the data are almost perfectly separable in the chosen feature space as shown below.
+
+<img width="395" height="352" alt="image" src="https://github.com/user-attachments/assets/646b9d1f-1c3d-4839-800e-2bc6f37b3f1f" />
+<img width="395" height="352" alt="image" src="https://github.com/user-attachments/assets/f172d8f8-076c-41df-a8ac-672ea9e29c52" />
 
 To understand which variables drive this separation, logistic regression coefficients are used as feature importances. The bar plot shows that the feature "band_gap" has a coefficient several orders of magnitude larger than any other feature as the remaining features have near-zero weights. This means the decision boundary is essentially a threshold on band_gap alone, which is physically sensible since materials with only zero band gaps behave as conductors, whereas large or small band gaps correspond to insulators or semiconductors. The client should thus only measure the bandgap to determine whether a material is conductive or not, significantly decreasing the cost of measuring it.
 
@@ -10,7 +13,6 @@ This interpretation is strongly supported by the feature subset experiment. Mode
 
 Overall, for the materials in dataset 1 the model behaviour is very clear from a client perspective: the conductive or non-conductive label is fully determined by the bandgap value, and the additional engineered features do not change the prediction.
 
-<img width="395" height="352" alt="image" src="https://github.com/user-attachments/assets/646b9d1f-1c3d-4839-800e-2bc6f37b3f1f" />
-<img width="392" height="343" alt="image" src="https://github.com/user-attachments/assets/f172d8f8-076c-41df-a8ac-672ea9e29c52" />
+
 <img width="637" height="386" alt="image" src="https://github.com/user-attachments/assets/a881b689-da1b-461d-8849-b60e764026c9" />
 <img width="582" height="378" alt="image" src="https://github.com/user-attachments/assets/7f72e86e-36d4-4fad-ac41-7441b63bdce9" />
